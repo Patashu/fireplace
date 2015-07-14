@@ -185,7 +185,7 @@ class BaseGame(Entity):
 				source.controller._events.append(action)
 			else:
 				ret.append(action.trigger(source, self))
-				self.refresh_auras()
+				self.refresh_auras() #TODO: Auras should refresh at the Phase level.
 
 		return ret
 

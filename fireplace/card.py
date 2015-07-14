@@ -2,19 +2,13 @@ import logging
 from itertools import chain
 from . import cards as CardDB, targeting
 from .actions import Damage, Deaths, Destroy, Heal, Play
-from .entity import Entity, boolean_property, int_property
+from .entity import Entity, boolean_property, int_property, new_order_of_play
 from .enums import AuraType, CardType, PlayReq, Race, Zone
 from .managers import *
 from .utils import CardList
 
 
 THE_COIN = "GAME_005"
-
-order_of_play = 0;
-
-def new_order_of_play():
-	order_of_play += 1;
-	return order_of_play
 
 def Card(id, data=None):
 	if data is None:

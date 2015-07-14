@@ -1,5 +1,11 @@
 import uuid
 
+order_of_play = 0;
+
+def new_order_of_play():
+	order_of_play += 1;
+	return order_of_play
+
 class Entity(object):
 	def __init__(self):
 		self.manager = self.Manager(self)

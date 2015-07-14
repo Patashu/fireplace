@@ -2,7 +2,7 @@ import logging
 import random
 from itertools import chain
 from .enums import CardType, PowSubType, Zone
-from .entity import Entity
+from .entity import Entity, new_order_of_play
 
 
 class RandomCardGenerator(object):
@@ -151,6 +151,7 @@ class Action:  # Lawsuit
 	type = PowSubType.TRIGGER
 
 	def __init__(self, *args, **kwargs):
+		self.order_of_play = new_order_of_play()
 		self.times = 1
 		self._args = args
 		for k, v in zip(self.args, args):
@@ -190,6 +191,25 @@ class Action:  # Lawsuit
 					game.queue_actions(entity, actions)
 					if event.once:
 						entity._events.remove(event)
+
+	def gather(self, game, at, *args):
+		result = []
+		for entity in chain(game.hands, game.entities):
+			if entity.ignore_events:
+				continue
+			for event in entity._events:
+				if event.zone != entity.zone:
+					continue
+				if isinstance(event.trigger, self.__class__) and event.at == at and event.trigger.matches(entity, args):
+					for action in event.actions:
+						if callable(action):
+							result += (entity, action(entity, *args))
+						else:
+							result.append((entity, action))
+					if event.once:
+						entity._events.remove(event)
+		result.sort(key = x[1].order_of_play) #TODO: Figure out the best place to put sorts like these
+		return result
 
 	def matches(self, source, args):
 		for arg, match in zip(args, self._args):
@@ -266,8 +286,13 @@ class Death(GameAction):
 
 	def do(self, source, game, target):
 		self.broadcast(game, EventListener.ON, target)
+		consequences_of_death = self.gather(game, EventListener.ON, target)
 		if target.deathrattles:
-			game.queue_actions(source, [Deathrattle(target)])
+			consequences_of_death.extend(Deathrattle(target).gather(target))
+			#game.queue_actions(source, [Deathrattle(target)])
+		consequences_of_death.sort(key = x[1].order_of_play)
+		for entity, action in consequences_of_death:
+			game.queue_actions(entity, action)
 
 
 class EndTurn(GameAction):
@@ -411,7 +436,24 @@ class Deathrattle(TargetedAction):
 			if target.controller.extra_deathrattles:
 				logging.info("Triggering deathrattles for %r again", target)
 				game.queue_actions(target, actions)
-
+	
+	def gather(self, target):
+		#TODO: This certainly isn't the best way to structure it, but I'll figure that out later.
+		result = []
+		for deathrattle in target.deathrattles:
+			if callable(deathrattle):
+				result.extend((target, deathrattle(target)))
+			else:
+				result.extend((target, deathrattle))
+				
+			if target.controller.extra_deathrattles: #TODO: writing it again is dumb
+				logging.info("Triggering deathrattles for %r again", target)
+				if callable(deathrattle):
+					result.extend((target, deathrattle(target)))
+				else:
+					result.extend((target, deathrattle))
+		result.sort(key = x[1].order_of_play) #TODO: Figure out the best place to put sorts like these
+		return result
 
 class Destroy(TargetedAction):
 	"""

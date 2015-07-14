@@ -308,6 +308,44 @@ def test_cult_master():
 	game.current_player.give(MOONFIRE).play(target=wisp2)
 	assert len(game.current_player.hand) == 4 + 1
 
+def test_cult_master_vs_clockwork_gnome():
+	game = prepare_game()
+	cultmaster1 = game.current_player.give("EX1_595")
+	cultmaster1.play()
+	clockwork1 = game.player1.give("GVG_082")
+	clockwork1.play()
+	cultmaster2 = game.current_player.give("EX1_595")
+	cultmaster2.play()
+	clockwork2 = game.player1.give("GVG_082")
+	clockwork2.play()
+	# 14 mana turn, so innervate twice
+	game.current_player.give("EX1_169").play()
+	game.current_player.give("EX1_169").play()
+	cultmaster3 = game.current_player.give("EX1_595")
+	cultmaster3.play()
+	assert len(game.current_player.hand) == 4
+	game.current_player.hand[0].discard()
+	game.current_player.hand[0].discard()
+	game.current_player.hand[0].discard()
+	game.current_player.hand[0].discard()
+	assert len(game.current_player.hand) == 0
+	game.end_turn()
+	
+	game.current_player.give("CS2_025").play()
+	game.end_turn()
+	
+	assert len(game.current_player.hand) == 9
+	# in order: draw, spare part, draw, draw. draw, draw, spare part, draw. draw.
+	print(game.current_player.hand)
+	assert("PART_00" != game.current_player.hand[0].id[0:7])
+	assert("PART_00" == game.current_player.hand[1].id[0:7])
+	assert("PART_00" != game.current_player.hand[2].id[0:7])
+	assert("PART_00" != game.current_player.hand[3].id[0:7])
+	assert("PART_00" != game.current_player.hand[4].id[0:7])
+	assert("PART_00" != game.current_player.hand[5].id[0:7])
+	assert("PART_00" == game.current_player.hand[6].id[0:7])
+	assert("PART_00" != game.current_player.hand[7].id[0:7])
+	assert("PART_00" != game.current_player.hand[8].id[0:7])
 
 def test_mana():
 	game = prepare_game(game_class=Game)

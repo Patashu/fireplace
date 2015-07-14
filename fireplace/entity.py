@@ -6,6 +6,7 @@ class Entity(object):
 		self.tags = self.manager
 		self.uuid = uuid.uuid4()
 		self.ignore_events = False
+		self.order_of_play = -1
 
 		scripts = getattr(self.data, "scripts", None)
 		self._events = getattr(scripts, "events", [])[:]

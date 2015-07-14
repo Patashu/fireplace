@@ -10,6 +10,11 @@ from .utils import CardList
 
 THE_COIN = "GAME_005"
 
+order_of_play = 0;
+
+def new_order_of_play():
+	order_of_play += 1;
+	return order_of_play
 
 def Card(id, data=None):
 	if data is None:
@@ -99,6 +104,7 @@ class BaseCard(Entity):
 
 	def summon(self):
 		logging.info("Summoning %r", self)
+		self.order_of_play = new_order_of_play()
 		self.zone = Zone.PLAY
 
 	def buff(self, target, buff, **kwargs):
@@ -717,6 +723,7 @@ class Aura(object):
 
 	def summon(self):
 		logging.info("Summoning Aura %r", self)
+		self.order_of_play = new_order_of_play()
 		self.game.auras.append(self)
 		self.game.refresh_auras()
 

@@ -265,7 +265,6 @@ class Death(GameAction):
 	"""
 
 	def do(self, source, game, target):
-		target.zone = Zone.GRAVEYARD
 		self.broadcast(game, EventListener.ON, target)
 		if target.deathrattles:
 			game.queue_actions(source, [Deathrattle(target)])
